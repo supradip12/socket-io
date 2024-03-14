@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { io } from "socket.io-client";
 import {
   Box,
@@ -8,8 +8,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+
 const App = () => {
-  const socket = io("http://localhost:3000");
+  const socket = useMemo(
+    () =>
+      io("http://localhost:3000", {
+        withCredentials: true,
+      }),
+    []
+  );
 
   // When connection established this will run
 
@@ -24,13 +31,20 @@ const App = () => {
     socket.emit("message", { message, room });
     setMessage("");
   };
+
   useEffect(() => {
     socket.on("connect", () => {
+      setSocketId(socket.id);
       console.log("connected");
     });
 
     socket.on("hey", (s) => {
       console.log(s);
+    });
+
+    socket.on("receive-message", (data) => {
+      console.log(data);
+      setMessages((messages) => [...messages, data]);
     });
 
     socket.on("welcome", (s) => {
@@ -44,8 +58,8 @@ const App = () => {
 
   return (
     <Container maxWidth="sm">
-      <Typography variant="h1" component="div" gutterBottom>
-        Welcome to Socket.io
+      <Typography variant="h6" component="div" gutterBottom>
+        {socket.id}
       </Typography>
 
       <form onSubmit={handelSubmit}>
@@ -54,6 +68,14 @@ const App = () => {
           onChange={(e) => setMessage(e.target.value)}
           id="outline-basic"
           label="Outlined"
+          variant="outlined"
+        />
+
+        <TextField
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+          id="outlined-basic"
+          label="Room"
           variant="outlined"
         />
         <Button type="submit" varient="contained" color="primary">

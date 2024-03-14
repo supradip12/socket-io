@@ -36,6 +36,7 @@ io.on("connection", (socket) => {
   socket.emit("hey", "Welcome Supra");
   socket.on("message", (data) => {
     console.log(data);
+    io.emit("received-data", data);
   });
 
   socket.on("disconnect", () => {
